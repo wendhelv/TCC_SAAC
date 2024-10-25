@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int     @id @default(autoincrement())
+  email     String  @unique
+  senha     String
+  superuser Boolean
+  Avaliador Avaliador?
+
+  @@map("usuarios")
+}
+
+model Edicao {
+  ano    String  @id
+  titulo String
+  Artigos      Artigo[]
+  Avaliacoes   Avaliacao[]
+  Perguntas    Pergunta[]
+
+  @@map("edicoes")
+}
+
+model AreaConhecimento {
+  id      Int     @id @default(autoincrement())
+  nome    String
+  Artigos Artigo[]
+  Perguntas Pergunta[]
+  AvaliadorAreas AvaliadorArea[]
+
+  @@map("areas_conhecimento")
+}
+
+model Artigo {
+  id             Int              @id @default(autoincrement())
+  titulo         String
+  autores        String
+  resumo         String
+  linkPdf        String
+  anoPublicacao  String
+  idArea         Int
+  idEdicao       String
+  area           AreaConhecimento @relation(fields: [idArea], references: [id])
+  edicao         Edicao           @relation(fields: [idEdicao], references: [ano])
+  Avaliacoes     Avaliacao[]
+
+  @@map("artigos")
+}
+
+model Avaliador {
+  id        Int       @id @default(autoincrement())
+  idUsuario Int @unique
+  nome      String
+  usuario   Usuario   @relation(fields: [idUsuario], references: [id])
+  AvaliadorAreas AvaliadorArea[]
+  Avaliacoes   Avaliacao[]
+
+  @@map("avaliadores")
+}
+
+model AvaliadorArea {
+  id          Int             @id @default(autoincrement())
+  idAvaliador Int
+  idArea      Int
+  avaliador   Avaliador        @relation(fields: [idAvaliador], references: [id])
+  area        AreaConhecimento @relation(fields: [idArea], references: [id])
+
+  @@map("avaliador_areas")
+}
+
+model Avaliacao {
+  id          Int       @id @default(autoincrement())
+  notaFinal   Decimal   @default(0.0)
+  idAvaliador Int
+  idArtigo    Int
+  idEdicao    String
+  avaliador   Avaliador @relation(fields: [idAvaliador], references: [id])
+  artigo      Artigo    @relation(fields: [idArtigo], references: [id])
+  edicao      Edicao    @relation(fields: [idEdicao], references: [ano])
+  Respostas   Resposta[]
+
+  @@map("avaliacoes")
+}
+
+model Pergunta {
+  id          Int             @id @default(autoincrement())
+  texto       String
+  idArea      Int
+  idEdicao    String
+  area        AreaConhecimento @relation(fields: [idArea], references: [id])
+  edicao      Edicao           @relation(fields: [idEdicao], references: [ano])
+  Respostas   Resposta[]
+
+  @@map("perguntas")
+}
+
+model Resposta {
+  id          Int       @id @default(autoincrement())
+  idAvaliacao Int
+  idPergunta  Int
+  nota        Decimal    @default(0.0)
+  avaliacao   Avaliacao  @relation(fields: [idAvaliacao], references: [id])
+  pergunta    Pergunta   @relation(fields: [idPergunta], references: [id])
+
+  @@map("respostas")
+}
