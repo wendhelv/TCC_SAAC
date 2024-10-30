@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📘 SAAC ULBRA 
+Este é um projeto **Next.js** para o **gerenciamento e organização das avaliações de artigos científicos da Jornada Ulbra Palmas**.
 
-## Getting Started
+## 🚀 Tecnologias Utilizadas
 
-First, run the development server:
+- [Next.js](https://nextjs.org) - Framework React para renderização no servidor e otimização de desempenho.
+- [Node.js](https://nodejs.org/) - Ambiente de execução para o backend.
+- [PostgreSQL](https://www.postgresql.org/) - Banco de dados relacional robusto e escalável.
+- [Prisma](https://www.prisma.io/) - ORM para manipulação de dados no PostgreSQL.
+- [Bcrypt](https://www.npmjs.com/package/bcrypt) - Biblioteca para criptografia de senhas.
+- [NextAuth](https://next-auth.js.org/) - Autenticação e gerenciamento de sessão.
+- [TailwindCSS](https://tailwindcss.com/) e [Flowbite](https://flowbite.com/) - Estilização moderna e componentes prontos.
 
+## ⚙️ Configuração Inicial
+
+Siga o passo a passo abaixo para configurar o ambiente localmente.
+
+### 1. Criação do Banco de Dados
+
+Abra seu PostgreSQL e crie um banco de dados com o nome `saac_ulbra`.
+Credenciais do banco de dados:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Usuário: postgres
+Senha: admin
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Instalação das Dependências
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Após clonar o projeto, instale as dependências:
+```bash
+npm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Criação das Tabelas
 
-## Learn More
+Aplique as migrações para criar as tabelas no banco de dados:
+```bash
+npx prisma migrate dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 4. Iniciando o Servidor de Desenvolvimento
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Inicie o servidor de desenvolvimento:
+```bash
+npm run dev
+```
+Abra http://localhost:3000 no navegador para ver o resultado.
