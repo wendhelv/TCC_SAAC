@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   SearchIcon,
   PencilIcon,
@@ -8,54 +8,53 @@ import {
   ChevronRightIcon,
 } from "lucide-react";
 import { Label, Modal, TextInput } from "flowbite-react";
-
-const perguntas = [
-  {
-    id: 1,
-    pergunta: "Qual é a originalidade do artigo em relação ao estado da arte?",
-    area: "Computação",
-    edicao: "2023",
-  },
-  {
-    id: 2,
-    pergunta: "O artigo apresenta uma estrutura clara e coerente?",
-    area: "Engenharia",
-    edicao: "2022",
-  },
-  {
-    id: 3,
-    pergunta:
-      "Os métodos utilizados no artigo são adequados para o problema abordado?",
-    area: "Física",
-    edicao: "2021",
-  },
-  {
-    id: 4,
-    pergunta: "O artigo contribui significativamente para o avanço da área?",
-    area: "Biologia",
-    edicao: "2023",
-  },
-  {
-    id: 5,
-    pergunta: "A revisão da literatura está bem fundamentada e atualizada?",
-    area: "Medicina",
-    edicao: "2022",
-  },
-  {
-    id: 6,
-    pergunta:
-      "A qualidade da redação e a organização das ideias são satisfatórias?",
-    area: "Matemática",
-    edicao: "2021",
-  },
-];
+import { findAllEdicoes } from "@/services/edicaoService";
+import { findAllAreas } from "@/services/areaService";
+import { findAllPerguntas, createPerguntas } from "@/services/perguntaService";
 
 export default function GerenciamentoPerguntas() {
+
+  interface PerguntasData {
+    area: {
+      nome: string;
+    };
+    edicao: {
+      ano: string;
+    };
+    id: number;
+    texto: string;
+    idArea: number;
+    idEdicao: string;
+
+  }
+
+  interface AreasData {
+    id: number;
+    nome: string;
+  }
+
+  interface EdicoesData {
+    ano: string;
+    titulo: string;
+  }
+
+  const [perguntas, setPerguntas] = useState<PerguntasData[]>([])
+  const [areas, setAreas] = useState<AreasData[]>([]);
+  const [edicoes, setEdicoes] = useState<EdicoesData[]>([]);
+  const [atualizar, setAtualizar] = useState(false)
+
   const [openModal, setOpenModal] = useState(false);
   const [camposPerguntas, setCamposPerguntas] = useState([""]);
 
+  const [edicaoSelecionada, setEdicaoSelecionada] = useState("");
+  const [areaSelecionada, setAreaSelecionada] = useState(0);
+
+
   function onCloseModal() {
     setOpenModal(false);
+    setEdicaoSelecionada('')
+    setAreaSelecionada(0)
+    setCamposPerguntas([""])
   }
 
   const handleAddCampo = () => {
@@ -68,12 +67,44 @@ export default function GerenciamentoPerguntas() {
     setCamposPerguntas(novaPergunta); // Atualiza o estado com o array modificado
   };
 
-  const handleCriarPerguntas = () => {
-    console.log(camposPerguntas); // Imprime o array de perguntas no console
-    camposPerguntas.map((pergunta) => (
-      alert(pergunta)
-    ))
+  const handleCriarPerguntas = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+  
+      if (camposPerguntas.some(pergunta => pergunta.trim() === "")) {
+          alert("Por favor, preencha todas as perguntas antes de prosseguir.");
+          return;
+      }
+  
+      const perguntas = await createPerguntas(edicaoSelecionada, areaSelecionada, camposPerguntas)
+
+      if(perguntas) {
+        alert("Perguntas criadas")
+        onCloseModal()
+        setAtualizar(!atualizar)
+      }
   };
+
+  useEffect(() => {
+
+    const fetchPerguntas = async () => {
+      const perguntasData = await findAllPerguntas();
+      setPerguntas(perguntasData)
+    }
+
+    const fetchEdicoes = async () => {
+      const edicoesData = await findAllEdicoes();
+      setEdicoes(edicoesData);
+    };
+
+    const fetchAreas = async () => {
+      const areasData = await findAllAreas();
+      setAreas(areasData);
+    };
+
+    fetchPerguntas()
+    fetchEdicoes()
+    fetchAreas();
+  }, [atualizar]);
 
   return (
     <div className="min-h-screen bg-purple-50 p-4 md:p-8">
@@ -140,28 +171,39 @@ export default function GerenciamentoPerguntas() {
                   </tr>
                 </thead>
                 <tbody>
-                  {perguntas.map((pergunta) => (
-                    <tr
-                      key={pergunta.id}
-                      className="bg-white border-b hover:bg-gray-50"
-                    >
-                      <td className="px-4 py-2 font-medium">
-                        {pergunta.pergunta}
-                      </td>
-                      <td className="px-4 py-2">{pergunta.area}</td>
-                      <td className="px-4 py-2">{pergunta.edicao}</td>
-                      <td className="px-4 py-2">
-                        <div className="flex space-x-2">
-                          <button className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg">
-                            <PencilIcon className="h-4 w-4" />
-                          </button>
-                          <button className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg">
-                            <TrashIcon className="h-4 w-4" />
-                          </button>
-                        </div>
+                  {perguntas.length > 0 ? (
+                    perguntas.map((pergunta: any) => (
+                      <tr
+                        key={pergunta.id}
+                        className="bg-white border-b hover:bg-gray-50"
+                      >
+                        <td className="px-4 py-2 font-medium">
+                          {pergunta.texto}
+                        </td>
+                        <td className="px-4 py-2">{pergunta.area.nome}</td>
+                        <td className="px-4 py-2">{pergunta.edicao.ano}</td>
+                        <td className="px-4 py-2">
+                          <div className="flex space-x-2">
+                            <button className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg">
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg">
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-4 py-2 text-center text-gray-500"
+                      >
+                        Não conseguimos localizar nenhuma pergunta
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -217,79 +259,81 @@ export default function GerenciamentoPerguntas() {
           </div>
         </div>
       </div>
-      <Modal show={openModal} size="md" onClose={onCloseModal} popup>
+      <Modal show={openModal} size="2xl" onClose={onCloseModal} popup>
         <Modal.Header />
         <Modal.Body>
-          <div className="space-y-6">
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-              Nova(s) Pergunta(s)
-            </h3>
-            <div>
-              <div className="mb-2 block">
-                <Label value="Edição" />
+          <form onSubmit={handleCriarPerguntas}>
+            <div className="space-y-6">
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+                Nova(s) Pergunta(s)
+              </h3>
+              <div>
+                <div className="mb-2 block">
+                  <Label value="Edição" />
+                </div>
+                <select onChange={(e) => setEdicaoSelecionada(e.target.value)} required id="edicoes" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                  <option value={'vazio'}>Escolha uma edição</option>
+                  {edicoes.length > 0 ? (
+                    edicoes.map((edicao: any) => (
+                      <option key={edicao.ano} value={edicao.ano}>{`${edicao.ano} - ${edicao.titulo}`}</option>
+                    ))
+                  ) : (
+                    <></>
+                  )}
+                </select>
               </div>
-              <select
-                id="edicao"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              >
-                <option selected>Escolha uma Edição</option>
-                <option value="2024">Edição 2024</option>
-                <option value="2023">Edição 2023</option>
-                <option value="2022">Edição 2022</option>
-                <option value="2021">Edição 2021</option>
-              </select>
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label value="Área de conhecimento" />
+              <div>
+                <div className="mb-2 block">
+                  <Label value="Área de conhecimento" />
+                </div>
+                <select onChange={(e) => setAreaSelecionada(parseInt(e.target.value))} required id="areas" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                  <option>Escolha uma área</option>
+                  {areas.length > 0 ? (
+                    areas.map((area: any) => (
+                      <option key={area.id} value={area.id}>{area.nome}</option>
+                    ))
+                  ) : (
+                    <></>
+                  )}
+                </select>
               </div>
-              <select
-                id="area"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              >
-                <option selected>Escolha uma Área</option>
-                <option value="Saúde">Saúde</option>
-                <option value="Exatas">Exatas</option>
-                <option value="Humanas">Humanas</option>
-                <option value="Computação">Computação</option>
-              </select>
-            </div>
 
-            <div>
-              <div className="mb-2 flex flex-row justify-between align-middle">
-                <Label value="Pergunta(s)" />
+              <div>
+                <div className="mb-2 flex flex-row justify-between align-middle">
+                  <Label value="Pergunta(s)" />
 
+                  <button
+                    type="button"
+                    onClick={handleAddCampo}
+                    className="ml-2 text-white bg-purple-600 p-2 rounded-full hover:bg-orange-500 transition-colors duration-300"
+                  >
+                    +
+                  </button>
+                </div>
+                {camposPerguntas.map((campo, index) => (
+                  <div key={index} className="flex items-center mb-2">
+                    <TextInput
+                      value={campo}
+                      onChange={(event) => handleChangePergunta(index, event)}
+                      placeholder={`Digite a pergunta ${index + 1}`}
+                      className="w-full"
+                    />
+
+                  </div>
+                ))}
+              </div>
+
+              <div className="w-full">
                 <button
-                  type="button"
-                  onClick={handleAddCampo}
-                  className="ml-2 text-white bg-purple-600 p-2 rounded-full hover:bg-orange-500 transition-colors duration-300"
+                  type="submit"
+                  className="text-white bg-purple-600 border border-gray-300 focus:outline-none hover:bg-orange-500 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-md px-5 py-2.5 me-2 mb-2 transition-colors duration-300"
                 >
-                  +
+                  Criar Pergunta(s)
                 </button>
               </div>
-              {camposPerguntas.map((campo, index) => (
-                <div key={index} className="flex items-center mb-2">
-                  <TextInput
-                    value={campo}
-                    onChange={(event) => handleChangePergunta(index, event)}
-                    placeholder={`Digite a pergunta ${index + 1}`}
-                    className="w-full"
-                  />
-
-                </div>
-              ))}
             </div>
+          </form>
 
-            <div className="w-full">
-              <button
-                type="button"
-                onClick={handleCriarPerguntas}
-                className="text-white bg-purple-600 border border-gray-300 focus:outline-none hover:bg-orange-500 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-md px-5 py-2.5 me-2 mb-2 transition-colors duration-300"
-              >
-                Criar Pergunta(s)
-              </button>
-            </div>
-          </div>
         </Modal.Body>
       </Modal>
     </div>

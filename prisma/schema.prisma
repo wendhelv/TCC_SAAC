@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,8 +8,8 @@ datasource db {
 }
 
 model Usuario {
-  id        Int     @id @default(autoincrement())
-  email     String  @unique
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
   senha     String
   superuser Boolean
   Avaliador Avaliador?
@@ -24,8 +18,8 @@ model Usuario {
 }
 
 model Edicao {
-  ano    String  @id
-  titulo String
+  ano          String       @id
+  titulo       String
   Artigos      Artigo[]
   Avaliacoes   Avaliacao[]
   Perguntas    Pergunta[]
@@ -34,10 +28,10 @@ model Edicao {
 }
 
 model AreaConhecimento {
-  id      Int     @id @default(autoincrement())
-  nome    String
-  Artigos Artigo[]
-  Perguntas Pergunta[]
+  id            Int             @id @default(autoincrement())
+  nome          String
+  Artigos       Artigo[]
+  Perguntas     Pergunta[]
   AvaliadorAreas AvaliadorArea[]
 
   @@map("areas_conhecimento")
@@ -49,7 +43,6 @@ model Artigo {
   autores        String
   resumo         String
   linkPdf        String
-  anoPublicacao  String
   idArea         Int
   idEdicao       String
   area           AreaConhecimento @relation(fields: [idArea], references: [id])
@@ -60,12 +53,12 @@ model Artigo {
 }
 
 model Avaliador {
-  id        Int       @id @default(autoincrement())
-  idUsuario Int @unique
-  nome      String
-  usuario   Usuario   @relation(fields: [idUsuario], references: [id])
+  id             Int              @id @default(autoincrement())
+  idUsuario      Int              @unique
+  nome           String
+  usuario        Usuario          @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
   AvaliadorAreas AvaliadorArea[]
-  Avaliacoes   Avaliacao[]
+  Avaliacoes     Avaliacao[]
 
   @@map("avaliadores")
 }
@@ -74,7 +67,7 @@ model AvaliadorArea {
   id          Int             @id @default(autoincrement())
   idAvaliador Int
   idArea      Int
-  avaliador   Avaliador        @relation(fields: [idAvaliador], references: [id])
+  avaliador   Avaliador        @relation(fields: [idAvaliador], references: [id], onDelete: Cascade)
   area        AreaConhecimento @relation(fields: [idArea], references: [id])
 
   @@map("avaliador_areas")
@@ -89,7 +82,7 @@ model Avaliacao {
   avaliador   Avaliador @relation(fields: [idAvaliador], references: [id])
   artigo      Artigo    @relation(fields: [idArtigo], references: [id])
   edicao      Edicao    @relation(fields: [idEdicao], references: [ano])
-  Respostas   Resposta[]
+  respostas   Resposta[]
 
   @@map("avaliacoes")
 }
@@ -101,7 +94,7 @@ model Pergunta {
   idEdicao    String
   area        AreaConhecimento @relation(fields: [idArea], references: [id])
   edicao      Edicao           @relation(fields: [idEdicao], references: [ano])
-  Respostas   Resposta[]
+  respostas   Resposta[]
 
   @@map("perguntas")
 }

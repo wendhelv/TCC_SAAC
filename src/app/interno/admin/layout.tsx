@@ -1,4 +1,4 @@
-import { NavbarInterno } from "@/components/NavbarInterno";
+import { NavbarInternoAdmin } from "@/components/NavbarInternoAdmin";
 import { SessionProvider } from "next-auth/react"
 import { auth } from "@/auth"
 import AcessoNegado from "@/components/AcessoNegado";
@@ -19,7 +19,7 @@ export default async function RootLayout({
 
 
             <>
-                <NavbarInterno />
+                <NavbarInternoAdmin />
                 {children}
 
             </>
