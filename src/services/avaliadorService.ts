@@ -138,7 +138,7 @@ export const updateAvaliador = async (
     await prisma.avaliadorArea.createMany({
       data: areasSelecionadas.map((idArea) => ({
         idAvaliador: id,
-        idArea,
+        idArea: Number(idArea), // Converte para número
       })),
     });
 
@@ -174,7 +174,10 @@ export const getArtigosNaoAvaliados = async (idAvaliador:number) => {
       where: { id: idAvaliador },
       include: { AvaliadorAreas: true }
     })
-
+    
+    if (!avaliador){
+      throw new Error("Email de usuário não encontrado na sessão.");
+    }
     // Extrai os IDs das áreas que o avaliador pode avaliar
     const areasIds = avaliador.AvaliadorAreas.map(area => area.idArea)
 

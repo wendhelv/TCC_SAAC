@@ -184,111 +184,64 @@ export default function GerenciamentoArtigos() {
 
           <div className="w-full md:w-3/4">
             <div className="bg-white rounded-lg shadow overflow-x-auto">
-              <table className="min-w-full table-auto">
-                <thead className="bg-purple-100">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-purple-800">
-                      Título
-                    </th>
-                    <th className="px-4 py-2 text-left text-purple-800">
-                      Edição
-                    </th>
-                    <th className="px-4 py-2 text-left text-purple-800">
-                      Área de Conhecimento
-                    </th>
-                    <th className="px-4 py-2 text-left text-purple-800">
-                      Ações
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {artigos.length > 0 ? (
-                    artigos.map((artigo: any) => (
-                      <tr
-                        key={artigo.id}
-                        className="bg-white border-b hover:bg-gray-50"
-                      >
-                        <td className="px-4 py-2 font-medium">
-                          {artigo.titulo}
-                        </td>
-                        <td className="px-4 py-2">{artigo.edicao.ano}</td>
-                        <td className="px-4 py-2">{artigo.area.nome}</td>
-                        <td className="px-4 py-2">
-                          <div className="flex space-x-2">
-                            <button className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg">
-                              <PencilIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteArtigo(artigo.id)}
-                              className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </button>
-                          </div>
+              <div className="max-h-96 overflow-y-scroll">
+                <table className="min-w-full table-auto">
+                  <thead className="bg-purple-100 sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-purple-800">
+                        Título
+                      </th>
+                      <th className="px-4 py-2 text-left text-purple-800">
+                        Edição
+                      </th>
+                      <th className="px-4 py-2 text-left text-purple-800">
+                        Área de Conhecimento
+                      </th>
+                      <th className="px-4 py-2 text-left text-purple-800">
+                        Ações
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {artigos.length > 0 ? (
+                      artigos.map((artigo: any) => (
+                        <tr
+                          key={artigo.id}
+                          className="bg-white border-b hover:bg-gray-50"
+                        >
+                          <td className="px-4 py-2 font-medium">
+                            {artigo.titulo}
+                          </td>
+                          <td className="px-4 py-2">{artigo.edicao.ano}</td>
+                          <td className="px-4 py-2">{artigo.area.nome}</td>
+                          <td className="px-4 py-2">
+                            <div className="flex space-x-2">
+                              <button className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg">
+                                <PencilIcon className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteArtigo(artigo.id)}
+                                className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
+                              >
+                                <TrashIcon className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="px-4 py-2 text-center text-gray-500"
+                        >
+                          Não conseguimos localizar nenhum artigo cadastrado
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="px-4 py-2 text-center text-gray-500"
-                      >
-                        Não conseguimos localizar nenhum artigo cadastrado
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-4 flex justify-center">
-              <nav aria-label="Page navigation example">
-                <ul className="flex items-center -space-x-px h-8 text-sm">
-                  <li>
-                    <a
-                      href="#"
-                      className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700"
-                    >
-                      <span className="sr-only">Previous</span>
-                      <ChevronLeftIcon className="w-4 h-4" />
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="flex items-center justify-center px-3 h-8 leading-tight text-purple-600 border border-purple-300 bg-purple-50 hover:bg-purple-100 hover:text-purple-700"
-                    >
-                      1
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700"
-                    >
-                      2
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700"
-                    >
-                      3
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700"
-                    >
-                      <span className="sr-only">Next</span>
-                      <ChevronRightIcon className="w-4 h-4" />
-                    </a>
-                  </li>
-                </ul>
-              </nav>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>

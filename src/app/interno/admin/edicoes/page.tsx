@@ -112,8 +112,9 @@ export default function Edicoes() {
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <div className="max-h-96 overflow-y-scroll">
           <table className="min-w-full table-auto">
-            <thead className="bg-purple-100">
+            <thead className="bg-purple-100 sticky top-0 z-10">
               <tr>
                 <th className="px-4 py-2 text-left text-purple-800">
                   Ano (ID)
@@ -163,6 +164,7 @@ export default function Edicoes() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 

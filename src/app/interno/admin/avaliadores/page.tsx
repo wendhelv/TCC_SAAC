@@ -14,13 +14,13 @@ import { findAllAreas } from "@/services/areaService";
 export default function Avaliadores() {
   const [atualizar, setAtualizar] = useState(false);
 
-  const [dadosAvaliadores, setDadosAvaliadores] = useState([]);
+  const [dadosAvaliadores, setDadosAvaliadores] = useState<AvaliadoresData[]>([]);
   const [areas, setAreas] = useState<AreasData[]>([]);
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [areasSelecionadas, setAreasSelecionadas] = useState([]);
+  const [areasSelecionadas, setAreasSelecionadas] = useState<string[]>([]);
 
   const [busca, setBusca] = useState("");
   const [openModal, setOpenModal] = useState(false);
@@ -31,6 +31,22 @@ export default function Avaliadores() {
   interface AreasData {
     id: number;
     nome: string;
+  }
+
+  interface AvaliadoresData {
+    usuario: {
+      email: string;
+    };
+    AvaliadorAreas: {
+      area: {
+        id: number;
+        nome: string;
+      };
+    }[];
+    id: number;
+    idUsuario: number;
+    nome: string;
+
   }
 
   useEffect(() => {
@@ -66,7 +82,7 @@ export default function Avaliadores() {
     try {
       if (avaliadorId) {
         // Atualização
-        const response = await updateAvaliador(
+        await updateAvaliador(
           avaliadorId,
           nome,
           email,
@@ -76,7 +92,7 @@ export default function Avaliadores() {
         alert("Avaliador atualizado com sucesso");
       } else {
         // Criação
-        const response = await createAvaliador(
+        await createAvaliador(
           nome,
           email,
           senha,
@@ -91,14 +107,14 @@ export default function Avaliadores() {
       console.error("Erro ao salvar avaliador:", error);
     }
   };
-  
-  const openUpdateModal = (avaliador) => {
+
+  const openUpdateModal = (avaliador: any) => {
     setAvaliadorId(avaliador.id);
     setNome(avaliador.nome);
     setEmail(avaliador.usuario.email);
     setSenha("");
     setAreasSelecionadas(
-      avaliador.AvaliadorAreas.map((areaObj) => areaObj.area.id)
+      avaliador.AvaliadorAreas.map((areaObj: any) => areaObj.area.id)
     );
     setModalUpdateAvaliador(true);
   };
@@ -140,63 +156,65 @@ export default function Avaliadores() {
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="min-w-full table-auto">
-            <thead className="bg-purple-100">
-              <tr>
-                <th className="px-4 py-2 text-left text-purple-800">
-                  Nome do Avaliador
-                </th>
-                <th className="px-4 py-2 text-left text-purple-800">E-mail</th>
-                <th className="px-4 py-2 text-left text-purple-800">
-                  Áreas de Conhecimento
-                </th>
-                <th className="px-4 py-2 text-left text-purple-800">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dadosAvaliadores.length > 0 ? (
-                dadosAvaliadores.map((avaliador: any) => (
-                  <tr
-                    key={avaliador.id}
-                    className="bg-white border-b hover:bg-gray-50"
-                  >
-                    <td className="px-4 py-2 font-medium">{avaliador.nome}</td>
-                    <td className="px-4 py-2">{avaliador.usuario.email}</td>
-                    <td className="px-4 py-2">
-                      {avaliador.AvaliadorAreas.map(
-                        (areaObj) => areaObj.area.nome
-                      ).join(", ")}
-                    </td>
-                    <td className="px-4 py-2">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => openUpdateModal(avaliador)}
-                          className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteAvaliador(avaliador.id)}
-                          className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
+          <div className="max-h-96 overflow-y-scroll">
+            <table className="min-w-full table-auto">
+              <thead className="bg-purple-100 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-2 text-left text-purple-800">
+                    Nome do Avaliador
+                  </th>
+                  <th className="px-4 py-2 text-left text-purple-800">E-mail</th>
+                  <th className="px-4 py-2 text-left text-purple-800">
+                    Áreas de Conhecimento
+                  </th>
+                  <th className="px-4 py-2 text-left text-purple-800">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dadosAvaliadores.length > 0 ? (
+                  dadosAvaliadores.map((avaliador: any) => (
+                    <tr
+                      key={avaliador.id}
+                      className="bg-white border-b hover:bg-gray-50"
+                    >
+                      <td className="px-4 py-2 font-medium">{avaliador.nome}</td>
+                      <td className="px-4 py-2">{avaliador.usuario.email}</td>
+                      <td className="px-4 py-2">
+                        {avaliador.AvaliadorAreas.map(
+                          (areaObj: any) => areaObj.area.nome
+                        ).join(", ")}
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => openUpdateModal(avaliador)}
+                            className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAvaliador(avaliador.id)}
+                            className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-4 py-2 text-center text-gray-500"
+                    >
+                      Não conseguimos localizar nenhuma área cadastrada
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="px-4 py-2 text-center text-gray-500"
-                  >
-                    Não conseguimos localizar nenhuma área cadastrada
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

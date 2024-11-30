@@ -1,11 +1,13 @@
-import NextAuth, {CredentialsSignin} from "next-auth";
+import NextAuth, { User } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { verifyUser } from "./services/userService";
 import { findAvaliadorByUser } from "./services/avaliadorService";
 
 declare module "next-auth" {
   interface User {
-    role: string;
+    senha: string;
+    superuser: boolean;
+    role: string; 
     idAvaliador?: number;
   }
 }
@@ -22,7 +24,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("Sem credenciais");
         }
 
-        const user = await verifyUser(credentials.email, credentials.password);
+        const user = await verifyUser(credentials.email as string, credentials.password as string);
         
 
         const role = user.superuser ? "admin" : "avaliador";
@@ -36,7 +38,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           idAvaliador = avaliador.id;
         }
 
-        return { ...user, role, idAvaliador };
+        return { ...user, id: user.id.toString(), role, idAvaliador } as User;
       },
     }),
   ],

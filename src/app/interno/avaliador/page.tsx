@@ -7,9 +7,17 @@ import { findUserByEmail } from '@/services/userService'
 
 export default async function TelaInicialAvaliador() {
     const session = await auth()
-    if (!session?.user) return null
-    const usuario = await findUserByEmail(session?.user?.email) 
-    const avaliador = await findAvaliadorByUser(usuario.id)
+    if (!session?.user?.email) {
+      throw new Error("Email de usuário não encontrado na sessão.");
+    }
+    
+    const usuario = await findUserByEmail(session.user.email); 
+    
+    if (!usuario) {
+      throw new Error("Usuário não encontrado.");
+    }
+    
+    const avaliador = await findAvaliadorByUser(usuario.id);
 
   return (
     <div className="min-h-screen p-4 sm:p-8">

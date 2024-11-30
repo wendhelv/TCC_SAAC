@@ -15,7 +15,7 @@ export default function AreasDeConhecimento() {
   const [areaId, setAreaId] = useState<number | null>(null);
 
 
-  interface AreasData{
+  interface AreasData {
     id: number
     nome: string
   }
@@ -60,7 +60,7 @@ export default function AreasDeConhecimento() {
 
   const handleUpdateArea = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     try {
       if (areaId) {
         const updatedArea = await updateArea(areaId, nome);
@@ -119,50 +119,52 @@ export default function AreasDeConhecimento() {
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="min-w-full table-auto">
-            <thead className="bg-purple-100">
-              <tr>
-                <th className="px-4 py-2 text-left text-purple-800">
-                  Nome da Área
-                </th>
-                <th className="px-8 py-2 text-right text-purple-800">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {areas.length > 0 ? (
-                areas.map((area:any) => (
-                  <tr
-                    key={area.id}
-                    className="bg-white border-b hover:bg-gray-50"
-                  >
-                    <td className="px-4 py-2 font-medium">{area.nome}</td>
-                    <td className="px-4 py-2">
-                      <div className="flex space-x-2 justify-end">
-                        <button className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg">
-                          <PencilIcon className="h-4 w-4" onClick={() =>{ openModalUpdate(area.id); setNome(area.nome);}} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteArea(area.id)}
-                          className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
+          <div className="max-h-96 overflow-y-scroll">
+            <table className="min-w-full table-auto">
+              <thead className="bg-purple-100 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-2 text-left text-purple-800">
+                    Nome da Área
+                  </th>
+                  <th className="px-8 py-2 text-right text-purple-800">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {areas.length > 0 ? (
+                  areas.map((area: any) => (
+                    <tr
+                      key={area.id}
+                      className="bg-white border-b hover:bg-gray-50"
+                    >
+                      <td className="px-4 py-2 font-medium">{area.nome}</td>
+                      <td className="px-4 py-2">
+                        <div className="flex space-x-2 justify-end">
+                          <button className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg">
+                            <PencilIcon className="h-4 w-4" onClick={() => { openModalUpdate(area.id); setNome(area.nome); }} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteArea(area.id)}
+                            className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={2}
+                      className="px-4 py-2 text-center text-gray-500"
+                    >
+                      Não conseguimos localizar nenhuma área cadastrada
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={2}
-                    className="px-4 py-2 text-center text-gray-500"
-                  >
-                    Não conseguimos localizar nenhuma área cadastrada
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
