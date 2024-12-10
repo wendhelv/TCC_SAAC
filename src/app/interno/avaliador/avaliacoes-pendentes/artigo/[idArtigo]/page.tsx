@@ -153,6 +153,9 @@ export default function AvaliacaoArtigo({
               Link
             </a>
           </p>
+          <p className="text-purple-700 my-5 font-bold">
+          A apresentação do trabalho será avaliada com base nos critérios abaixo, utilizando uma escala de 0 a 1.
+          </p>
         </div>
 
         <form

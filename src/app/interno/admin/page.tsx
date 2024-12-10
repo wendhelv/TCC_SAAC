@@ -1,8 +1,9 @@
 'use client'
+import { getArtigosPorEdicaoEArea, getAvaliacoesPendentes, getMediaNotaFinal, getTotalArtigos, getTotalAvaliacoes, getUsuariosStats } from '@/services/dashService';
 import { createUser } from '@/services/userService';
 import { Label, Modal, TextInput } from 'flowbite-react';
 import { Users, ClipboardList, FileText, Star, BarChart2, Clock } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // Dados de exemplo
 const dashboardData = {
@@ -26,11 +27,46 @@ const dashboardData = {
   pendingEvaluations: 50,
 }
 
+interface usuariosData {
+  totalUsuarios: number
+  totalAdmins: number
+  totalAvaliadores: number
+}
+
+interface AreaData {
+  nome: string;
+  count: number;
+}
+
+interface EdicaoData {
+  ano: string;
+  count: number;
+}
+
+interface ArtigosDashData {
+  areas: AreaData[];
+  edicoes: EdicaoData[];
+}
+
 export default function AdminDashboard() {
 
   const [openModal, setOpenModal] = useState(false);
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
+
+  const [usuarioStatus, setUsuarioStatus] = useState<usuariosData>({
+    totalUsuarios: 0,
+    totalAdmins: 0,
+    totalAvaliadores: 0,
+  });
+  const [totalAvaliacoes, setTotalAvaliacoes] = useState(0)
+  const [totalArtigos, setTotalArtigos] = useState(0)
+  const [mediaNotaFinal, setMediaNotaFinal] = useState(0)
+  const [avaliacoesPendentes, setAvaliacoesPendentes] = useState(0)
+  const [artigosDashData, setArtigosDashData] = useState<ArtigosDashData>({
+    areas: [],
+    edicoes: [],
+  });
 
   const onCloseModal = () => {
     setOpenModal(false);
@@ -42,16 +78,36 @@ export default function AdminDashboard() {
   const handleSubmitNewAdmin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if(email && senha){
+    if (email && senha) {
       await createUser(email, senha, true)
     }
-    else{
+    else {
       alert("Campos não preenchidos")
       return;
     }
     onCloseModal()
     alert("Usuário administrativo criado!")
   }
+
+  useEffect(() => {
+    const fetchDadosDash = async () => {
+      const usuariosData = await getUsuariosStats()
+      const avalicoesData = await getTotalAvaliacoes()
+      const artigosData = await getTotalArtigos()
+      const mediaData = await getMediaNotaFinal()
+      const pendentesData = await getAvaliacoesPendentes()
+      const artigosEdicaoAreaData = await getArtigosPorEdicaoEArea()
+
+      setUsuarioStatus(usuariosData)
+      setTotalAvaliacoes(avalicoesData)
+      setTotalArtigos(artigosData)
+      setMediaNotaFinal(mediaData)
+      setAvaliacoesPendentes(pendentesData)
+      setArtigosDashData(artigosEdicaoAreaData)
+    }
+
+    fetchDadosDash()
+  }, [])
 
   return (
     <div className="min-h-screen bg-purple-50 p-4 sm:p-8">
@@ -74,9 +130,9 @@ export default function AdminDashboard() {
               <h2 className="text-sm font-medium text-purple-800">Total de Usuários</h2>
               <Users className="h-5 w-5 text-purple-600" />
             </div>
-            <div className="text-2xl font-bold">{dashboardData.totalUsers}</div>
+            <div className="text-2xl font-bold">{usuarioStatus.totalUsuarios}</div>
             <p className="text-xs text-gray-500">
-              Admins: {dashboardData.adminUsers} | Avaliadores: {dashboardData.evaluators}
+              Admins: {usuarioStatus.totalAdmins} | Avaliadores: {usuarioStatus.totalAvaliadores}
             </p>
           </div>
 
@@ -85,7 +141,7 @@ export default function AdminDashboard() {
               <h2 className="text-sm font-medium text-purple-800">Total de Avaliações</h2>
               <ClipboardList className="h-5 w-5 text-purple-600" />
             </div>
-            <div className="text-2xl font-bold">{dashboardData.totalEvaluations}</div>
+            <div className="text-2xl font-bold">{totalAvaliacoes}</div>
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-4">
@@ -93,7 +149,7 @@ export default function AdminDashboard() {
               <h2 className="text-sm font-medium text-purple-800">Total de Artigos</h2>
               <FileText className="h-5 w-5 text-purple-600" />
             </div>
-            <div className="text-2xl font-bold">{dashboardData.totalArticles}</div>
+            <div className="text-2xl font-bold">{totalArtigos}</div>
           </div>
 
           {/* Indicadores de Desempenho e Qualidade */}
@@ -102,7 +158,7 @@ export default function AdminDashboard() {
               <h2 className="text-sm font-medium text-purple-800">Média de Nota Final</h2>
               <Star className="h-5 w-5 text-purple-600" />
             </div>
-            <div className="text-2xl font-bold">{dashboardData.averageScore.toFixed(1)}</div>
+            <div className="text-2xl font-bold">{mediaNotaFinal}</div>
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-4 md:col-span-2">
@@ -113,18 +169,18 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <h3 className="text-sm font-semibold mb-2">Por Edição</h3>
-                {dashboardData.articlesByEdition.map((item, index) => (
+                {artigosDashData.edicoes.map((item, index) => (
                   <div key={index} className="flex justify-between text-sm">
-                    <span>{item.edition}:</span>
+                    <span>{item.ano}:</span>
                     <span>{item.count}</span>
                   </div>
                 ))}
               </div>
               <div>
                 <h3 className="text-sm font-semibold mb-2">Por Área</h3>
-                {dashboardData.articlesByArea.map((item, index) => (
+                {artigosDashData.areas.map((item, index) => (
                   <div key={index} className="flex justify-between text-sm">
-                    <span>{item.area}:</span>
+                    <span>{item.nome}:</span>
                     <span>{item.count}</span>
                   </div>
                 ))}
@@ -138,7 +194,7 @@ export default function AdminDashboard() {
               <h2 className="text-sm font-medium text-purple-800">Avaliações Pendentes</h2>
               <Clock className="h-5 w-5 text-purple-600" />
             </div>
-            <div className="text-2xl font-bold">{dashboardData.pendingEvaluations}</div>
+            <div className="text-2xl font-bold">{avaliacoesPendentes}</div>
           </div>
         </div>
       </div>
@@ -151,7 +207,7 @@ export default function AdminDashboard() {
               <h3 className="text-xl font-medium text-gray-900 dark:text-white">
                 Novo Administrador
               </h3>
-              
+
               <div>
                 <div className="mb-2 block">
                   <Label htmlFor="email" value="Email do administrador" />
@@ -176,7 +232,7 @@ export default function AdminDashboard() {
                   required
                 />
               </div>
-              
+
               <div className="w-full">
                 <button
                   type="submit"

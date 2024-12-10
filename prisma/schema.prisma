@@ -18,11 +18,12 @@ model Usuario {
 }
 
 model Edicao {
-  ano          String       @id
-  titulo       String
-  Artigos      Artigo[]
-  Avaliacoes   Avaliacao[]
-  Perguntas    Pergunta[]
+  ano              String           @id
+  titulo           String
+  Artigos          Artigo[]
+  Avaliacoes       Avaliacao[]
+  Perguntas        Pergunta[]
+  AvaliadorEdicoes AvaliadorEdicao[]
 
   @@map("edicoes")
 }
@@ -53,14 +54,26 @@ model Artigo {
 }
 
 model Avaliador {
-  id             Int              @id @default(autoincrement())
-  idUsuario      Int              @unique
-  nome           String
-  usuario        Usuario          @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
-  AvaliadorAreas AvaliadorArea[]
-  Avaliacoes     Avaliacao[]
+  id               Int              @id @default(autoincrement())
+  idUsuario        Int              @unique
+  nome             String
+  usuario          Usuario          @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
+  AvaliadorAreas   AvaliadorArea[]
+  Avaliacoes       Avaliacao[]
+  AvaliadorEdicoes AvaliadorEdicao[]
 
   @@map("avaliadores")
+}
+
+model AvaliadorEdicao {
+  id          Int       @id @default(autoincrement())
+  idAvaliador Int
+  idEdicao    String
+  avaliador   Avaliador @relation(fields: [idAvaliador], references: [id], onDelete: Cascade)
+  edicao      Edicao    @relation(fields: [idEdicao], references: [ano], onDelete: Cascade)
+
+  @@map("avaliador_edicoes")
+  @@unique([idAvaliador, idEdicao])
 }
 
 model AvaliadorArea {

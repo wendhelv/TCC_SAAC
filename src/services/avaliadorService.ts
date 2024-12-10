@@ -138,7 +138,7 @@ export const updateAvaliador = async (
     await prisma.avaliadorArea.createMany({
       data: areasSelecionadas.map((idArea) => ({
         idAvaliador: id,
-        idArea: Number(idArea), // Converte para número
+        idArea: Number(idArea),
       })),
     });
 
@@ -167,41 +167,49 @@ export const findAvaliadorByUser = async (idUsuario:number) => {
   return null
 }
 
-export const getArtigosNaoAvaliados = async (idAvaliador:number) => {
+export const getArtigosNaoAvaliados = async (idAvaliador: number) => {
   try {
-    // Busca as áreas que o avaliador pode avaliar
+    
     const avaliador = await prisma.avaliador.findUnique({
       where: { id: idAvaliador },
-      include: { AvaliadorAreas: true }
-    })
-    
-    if (!avaliador){
-      throw new Error("Email de usuário não encontrado na sessão.");
-    }
-    // Extrai os IDs das áreas que o avaliador pode avaliar
-    const areasIds = avaliador.AvaliadorAreas.map(area => area.idArea)
+      include: {
+        AvaliadorAreas: true,
+        AvaliadorEdicoes: true,
+      },
+    });
 
-    // Busca os artigos nas áreas permitidas e que ainda não foram avaliados por esse avaliador
+    if (!avaliador) {
+      throw new Error("Avaliador não encontrado.");
+    }
+
+    
+    const areasIds = avaliador.AvaliadorAreas.map((area) => area.idArea);
+
+    
+    const edicoesIds = avaliador.AvaliadorEdicoes.map((edicao) => edicao.idEdicao);
+
+    // Busca os artigos nas áreas e edições permitidas e que ainda não foram avaliados por esse avaliador
     const artigosNaoAvaliados = await prisma.artigo.findMany({
       where: {
-        idArea: { in: areasIds }, // Filtra os artigos nas áreas do avaliador
+        idArea: { in: areasIds },
+        idEdicao: { in: edicoesIds },
         Avaliacoes: {
           none: {
-            idAvaliador: idAvaliador // Verifica se o artigo não tem avaliação desse avaliador específico
-          }
-        }
+            idAvaliador: idAvaliador,
+          },
+        },
       },
       include: {
-        area: true, // Inclui os dados da área de conhecimento do artigo
-        edicao: true
-      }
-    })
+        area: true,
+        edicao: true,
+      },
+    });
 
-    return artigosNaoAvaliados
+    return artigosNaoAvaliados;
   } catch (error) {
-    console.error('Erro ao buscar artigos não avaliados:', error)
-    throw error
+    console.error("Erro ao buscar artigos não avaliados:", error);
+    throw error;
   }
-}
+};
 
 

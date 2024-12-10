@@ -2,19 +2,34 @@
 
 import React, { useState, useEffect } from "react";
 import { SearchIcon, PencilIcon, TrashIcon } from "lucide-react";
-import { Label, Modal, TextInput } from "flowbite-react";
+import { Button, Label, Modal, TextInput } from "flowbite-react";
 import {
   createEdicao,
   deleteEdicao,
   findAllEdicoes,
   updateEdicao,
 } from "@/services/edicaoService";
+import { findAllAvaliadores } from "@/services/avaliadorService";
 
 export default function Edicoes() {
-
   interface Edicao {
-    ano: string
-    titulo: string
+    ano: string;
+    titulo: string;
+  }
+
+  interface AvaliadoresData {
+    usuario: {
+      email: string;
+    };
+    AvaliadorAreas: {
+      area: {
+        id: number;
+        nome: string;
+      };
+    }[];
+    id: number;
+    idUsuario: number;
+    nome: string;
   }
 
   const [dadosEdicoes, setDadosEdicoes] = useState<Edicao[]>([]);
@@ -29,13 +44,41 @@ export default function Edicoes() {
   const [ModalUpdateEdicao, setModalUpdateEdicao] = useState(false);
   const [edicaoAno, setEdicaoAno] = useState(null);
 
+  const [buscaAvaliadores, setBuscaAvaliadores] = useState("");
+  const [avaliadores, setAvaliadores] = useState<AvaliadoresData[]>([]);
+  const [avaliadoresFiltrados, setAvaliadoresFiltrados] = useState(avaliadores);
+  const [avaliadoresSelecionados, setAvaliadoresSelecionados] = useState<
+    number[]
+  >([]);
+
+  useEffect(() => {
+    setAvaliadoresFiltrados(
+      avaliadores.filter((avaliador) =>
+        avaliador.nome.toLowerCase().includes(buscaAvaliadores.toLowerCase())
+      )
+    );
+  }, [buscaAvaliadores, avaliadores]);
+
+  // Adicionar ou remover avaliador selecionado
+  const toggleAvaliadorSelecionado = (id: number) => {
+    setAvaliadoresSelecionados((prev) =>
+      prev.includes(id) ? prev.filter((aid) => aid !== id) : [...prev, id]
+    );
+  };
+
   useEffect(() => {
     const fetchEdicoes = async () => {
       const edicoes = await findAllEdicoes();
       setDadosEdicoes(edicoes);
     };
 
+    const fetchAvaliadores = async () => {
+      const avaliadoresData = await findAllAvaliadores();
+      setAvaliadores(avaliadoresData);
+    };
+
     fetchEdicoes();
+    fetchAvaliadores();
   }, [atualizar]);
 
   function onCloseModal() {
@@ -43,13 +86,21 @@ export default function Edicoes() {
     setModalUpdateEdicao(false);
     setAno("");
     setTitulo("");
-    setEdicaoAno(null)
+    setEdicaoAno(null);
+    setAvaliadoresSelecionados([])
   }
 
   const openUpdateModal = (edicao: any) => {
     setEdicaoAno(edicao.ano);
     setAno(edicao.ano);
     setTitulo(edicao.titulo);
+
+    // Preencher os avaliadores selecionados com os avaliadores da edição
+    const avaliadoresIds = edicao.AvaliadorEdicoes?.map(
+      (avaliadorEdicao: any) => avaliadorEdicao.avaliador.id
+    );
+    setAvaliadoresSelecionados(avaliadoresIds || []);
+
     setModalUpdateEdicao(true);
   };
 
@@ -58,10 +109,12 @@ export default function Edicoes() {
 
     try {
       if (edicaoAno) {
-        await updateEdicao(ano, titulo);
+        // Atualizar a edição existente com os avaliadores selecionados
+        await updateEdicao(ano, titulo, avaliadoresSelecionados);
         alert("Edição atualizada com sucesso!");
       } else {
-        await createEdicao(ano, titulo);
+        // Criar uma nova edição
+        await createEdicao(ano, titulo, avaliadoresSelecionados);
         alert("Edição criada com sucesso!");
       }
 
@@ -113,62 +166,88 @@ export default function Edicoes() {
 
         <div className="bg-white rounded-lg shadow overflow-x-auto">
           <div className="max-h-96 overflow-y-scroll">
-          <table className="min-w-full table-auto">
-            <thead className="bg-purple-100 sticky top-0 z-10">
-              <tr>
-                <th className="px-4 py-2 text-left text-purple-800">
-                  Ano (ID)
-                </th>
-                <th className="px-4 py-2 text-left text-purple-800">
-                  Nome da Edição
-                </th>
-                <th className="px-8 py-2 text-right text-purple-800">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dadosEdicoes.length > 0 ? (
-                dadosEdicoes.map((edicao: any) => (
-                  <tr
-                    key={edicao.ano}
-                    className="bg-white border-b hover:bg-gray-50"
-                  >
-                    <td className="px-4 py-2 font-medium">{edicao.ano}</td>
-                    <td className="px-4 py-2 font-medium">{edicao.titulo}</td>
-                    <td className="px-4 py-2">
-                      <div className="flex space-x-2 justify-end">
-                        <button
-                          onClick={() => openUpdateModal(edicao)}
-                          className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteEdicao(edicao.ano)}
-                          className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
+            <table className="min-w-full table-auto">
+              <thead className="bg-purple-100 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-2 text-left text-purple-800">
+                    Ano (ID)
+                  </th>
+                  <th className="px-4 py-2 text-left text-purple-800">
+                    Nome da Edição
+                  </th>
+                  <th className="px-4 py-2 text-left text-purple-800">
+                    Avaliadores
+                  </th>
+                  <th className="px-8 py-2 text-right text-purple-800">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {dadosEdicoes.length > 0 ? (
+                  dadosEdicoes.map((edicao: any) => (
+                    <tr
+                      key={edicao.ano}
+                      className="bg-white border-b hover:bg-gray-50"
+                    >
+                      <td className="px-4 py-2 font-medium">{edicao.ano}</td>
+                      <td className="px-4 py-2 font-medium">{edicao.titulo}</td>
+                      <td className="px-4 py-2 font-medium">
+                        {edicao.AvaliadorEdicoes &&
+                          edicao.AvaliadorEdicoes.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {edicao.AvaliadorEdicoes.map(
+                              (avaliadorEdicao: any) => (
+                                <span
+                                  key={avaliadorEdicao.avaliador.id}
+                                  className="text-sm text-gray-600 bg-purple-100 rounded px-2 py-1"
+                                >
+                                  {avaliadorEdicao.avaliador.nome}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-500">
+                            Sem avaliadores
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex space-x-2 justify-end">
+                          <button
+                            onClick={() => openUpdateModal(edicao)}
+                            className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteEdicao(edicao.ano)}
+                            className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-4 py-2 text-center text-gray-500"
+                    >
+                      Não conseguimos localizar nenhuma edição cadastrada
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={3}
-                    className="px-4 py-2 text-center text-gray-500"
-                  >
-                    Não conseguimos localizar nenhuma edição cadastrada
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      <Modal show={openModal} size="md" onClose={onCloseModal} popup>
+      <Modal show={openModal} size="lg" onClose={onCloseModal} popup>
         <Modal.Header />
         <Modal.Body>
           <form onSubmit={handleSubmitEdicao}>
@@ -199,6 +278,38 @@ export default function Edicoes() {
                 />
               </div>
 
+              <div>
+                <div className="mb-2 block">
+                  <Label value="Selecionar Avaliadores" />
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Pesquisar avaliadores..."
+                    className="w-full border border-purple-300 rounded-lg px-4 py-2 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                    value={buscaAvaliadores}
+                    onChange={(e) => setBuscaAvaliadores(e.target.value)}
+                  />
+                  <div className="mt-2 max-h-60 overflow-y-auto border border-purple-300 rounded-lg p-2 bg-white shadow-lg">
+                    {avaliadoresFiltrados.map((avaliador) => (
+                      <div
+                        key={avaliador.id}
+                        className={`flex items-center justify-between p-2 hover:bg-purple-100 rounded-md cursor-pointer ${avaliadoresSelecionados.includes(avaliador.id)
+                            ? "bg-purple-200"
+                            : ""
+                          }`}
+                        onClick={() => toggleAvaliadorSelecionado(avaliador.id)}
+                      >
+                        <span>{avaliador.nome}</span>
+                        {avaliadoresSelecionados.includes(avaliador.id) && (
+                          <span className="text-orange-500">Selecionado</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               <div className="w-full">
                 <button
                   type="submit"
@@ -212,7 +323,7 @@ export default function Edicoes() {
         </Modal.Body>
       </Modal>
 
-      <Modal show={ModalUpdateEdicao} size="md" onClose={onCloseModal} popup>
+      <Modal show={ModalUpdateEdicao} size="lg" onClose={onCloseModal} popup>
         <Modal.Header />
         <Modal.Body>
           <form onSubmit={handleSubmitEdicao}>
@@ -228,7 +339,7 @@ export default function Edicoes() {
                   id="ano"
                   value={ano}
                   onChange={(event) => setAno(event.target.value)}
-                  required
+                  readOnly
                 />
               </div>
               <div>
@@ -241,6 +352,38 @@ export default function Edicoes() {
                   onChange={(event) => setTitulo(event.target.value)}
                   required
                 />
+              </div>
+
+              <div>
+                <div className="mb-2 block">
+                  <Label value="Selecionar Avaliadores" />
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Pesquisar avaliadores..."
+                    className="w-full border border-purple-300 rounded-lg px-4 py-2 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                    value={buscaAvaliadores}
+                    onChange={(e) => setBuscaAvaliadores(e.target.value)}
+                  />
+                  <div className="mt-2 max-h-60 overflow-y-auto border border-purple-300 rounded-lg p-2 bg-white shadow-lg">
+                    {avaliadoresFiltrados.map((avaliador) => (
+                      <div
+                        key={avaliador.id}
+                        className={`flex items-center justify-between p-2 hover:bg-purple-100 rounded-md cursor-pointer ${avaliadoresSelecionados.includes(avaliador.id)
+                            ? "bg-purple-200"
+                            : ""
+                          }`}
+                        onClick={() => toggleAvaliadorSelecionado(avaliador.id)}
+                      >
+                        <span>{avaliador.nome}</span>
+                        {avaliadoresSelecionados.includes(avaliador.id) && (
+                          <span className="text-orange-500">Selecionado</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="w-full">

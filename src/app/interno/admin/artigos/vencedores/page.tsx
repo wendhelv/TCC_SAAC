@@ -58,7 +58,6 @@ export default function ArtigosVencedores() {
             (areaSelecionada === "Todas" || artigo.area === areaSelecionada)
     );
 
-    console.log(artigos)
     return (
         <div className="min-h-screen bg-purple-50 p-8">
             <div className="max-w-6xl mx-auto">
