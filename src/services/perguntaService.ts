@@ -21,11 +21,11 @@ export const findAllPerguntas = async () => {
         })
         return perguntas
     } catch (error) {
-        console.error("Erro ao buscar as perguntas:",error)
+        console.error("Erro ao buscar as perguntas:", error)
     }
 }
 
-export const findPerguntasParaAvaliacao = async (idArea:number, idEdicao:string) => {
+export const findPerguntasParaAvaliacao = async (idArea: number, idEdicao: string) => {
     try {
         const perguntas = await prisma.pergunta.findMany({
             where: {
@@ -40,7 +40,7 @@ export const findPerguntasParaAvaliacao = async (idArea:number, idEdicao:string)
     }
 }
 
-export const createPerguntas = async (edicao:string, area:number, perguntas:string[]) => {
+export const createPerguntas = async (edicao: string, area: number, perguntas: string[]) => {
     try {
         const pergutasCriadas = await prisma.pergunta.createMany({
             data: perguntas.map((pergunta) => ({
@@ -50,8 +50,42 @@ export const createPerguntas = async (edicao:string, area:number, perguntas:stri
             }))
         })
         return pergutasCriadas
-        
+
     } catch (error) {
-        console.error("Erro ao criar a pergunta:",error)
+        console.error("Erro ao criar a pergunta:", error)
     }
 }
+
+export const updatePergunta = async (
+    id: number,
+    texto: string,
+    idEdicao: string,
+    idArea: number
+) => {
+    try {
+        const updatedPergunta = await prisma.pergunta.update({
+            where: { id },
+            data: {
+                texto,
+                idEdicao,
+                idArea,
+            },
+        });
+        return updatedPergunta;
+    } catch (error) {
+        console.error("Erro ao atualizar pergunta:", error);
+        throw error;
+    }
+};
+
+export const deletePergunta = async (id: number) => {
+    try {
+        const deletedPergunta = await prisma.pergunta.delete({
+            where: { id },
+        });
+        return deletedPergunta;
+    } catch (error) {
+        console.error("Erro ao deletar pergunta:", error);
+        throw error;
+    }
+};

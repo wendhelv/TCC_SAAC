@@ -10,7 +10,7 @@ import {
 import { Label, Modal, TextInput } from "flowbite-react";
 import { findAllEdicoes } from "@/services/edicaoService";
 import { findAllAreas } from "@/services/areaService";
-import { findAllPerguntas, createPerguntas } from "@/services/perguntaService";
+import { findAllPerguntas, createPerguntas, updatePergunta, deletePergunta } from "@/services/perguntaService";
 
 export default function GerenciamentoPerguntas() {
 
@@ -49,6 +49,18 @@ export default function GerenciamentoPerguntas() {
   const [edicaoSelecionada, setEdicaoSelecionada] = useState("");
   const [areaSelecionada, setAreaSelecionada] = useState(0);
 
+  const [perguntaId, setPerguntaId] = useState<number | null>(null); // Identificar a pergunta sendo editada
+  const [perguntaTexto, setPerguntaTexto] = useState<string>(""); // Texto da pergunta para edição
+  const [modalUpdate, setModalUpdate] = useState(false); // Modal para editar pergunta
+
+
+  const onOpenUpdateModal = (pergunta: PerguntasData) => {
+    setPerguntaId(pergunta.id);
+    setPerguntaTexto(pergunta.texto);
+    setEdicaoSelecionada(pergunta.idEdicao);
+    setAreaSelecionada(pergunta.idArea);
+    setModalUpdate(true);
+  };
 
   function onCloseModal() {
     setOpenModal(false);
@@ -83,6 +95,42 @@ export default function GerenciamentoPerguntas() {
       setAtualizar(!atualizar)
     }
   };
+
+  const handleUpdatePergunta = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!perguntaId || !perguntaTexto.trim()) {
+      alert("Preencha todos os campos antes de prosseguir.");
+      return;
+    }
+
+    try {
+      await updatePergunta(perguntaId, perguntaTexto, edicaoSelecionada, areaSelecionada);
+      setAtualizar(!atualizar);
+      setModalUpdate(false);
+      alert("Pergunta atualizada com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar pergunta:", error);
+      alert("Ocorreu um erro ao atualizar a pergunta.");
+    }
+  };
+
+  const handleDeletePergunta = async (id: number) => {
+    const confirmar = confirm(
+      "Tem certeza que deseja deletar esta pergunta? Esta ação não pode ser desfeita."
+    );
+
+    if (!confirmar) return;
+
+    try {
+      await deletePergunta(id);
+      setAtualizar(!atualizar);
+      alert("Pergunta deletada com sucesso!");
+    } catch (error) {
+      console.error("Erro ao deletar pergunta:", error);
+      alert("Ocorreu um erro ao tentar deletar a pergunta.");
+    }
+  };
+
 
   useEffect(() => {
 
@@ -185,10 +233,17 @@ export default function GerenciamentoPerguntas() {
                           <td className="px-2 py-2 md:px-4">{pergunta.edicao.ano}</td>
                           <td className="px-2 py-2 md:px-4">
                             <div className="flex space-x-2">
-                              <button className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-1 sm:p-2 rounded-lg">
+                              <button
+                                onClick={() => onOpenUpdateModal(pergunta)}
+                                className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-1 sm:p-2 rounded-lg"
+                              >
                                 <PencilIcon className="h-4 w-4" />
                               </button>
-                              <button className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-1 sm:p-2 rounded-lg">
+
+                              <button
+                                onClick={() => handleDeletePergunta(pergunta.id)}
+                                className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-1 sm:p-2 rounded-lg"
+                              >
                                 <TrashIcon className="h-4 w-4" />
                               </button>
                             </div>
@@ -289,6 +344,72 @@ export default function GerenciamentoPerguntas() {
           </form>
         </Modal.Body>
       </Modal>
+
+      <Modal show={modalUpdate} size="md" onClose={() => setModalUpdate(false)} popup>
+        <Modal.Header />
+        <Modal.Body>
+          <form onSubmit={handleUpdatePergunta}>
+            <div className="space-y-6">
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+                Atualizar Pergunta
+              </h3>
+              <div>
+                <Label value="Edição" />
+                <select
+                  value={edicaoSelecionada}
+                  onChange={(e) => setEdicaoSelecionada(e.target.value)}
+                  required
+                  className="w-full mt-2 bg-gray-50 border border-gray-300 rounded-lg p-2 text-sm focus:ring focus:ring-purple-500 focus:border-purple-500"
+                >
+                  <option value="">Escolha uma edição</option>
+                  {edicoes.map((edicao: any) => (
+                    <option key={edicao.ano} value={edicao.ano}>
+                      {`${edicao.ano} - ${edicao.titulo}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label value="Área de conhecimento" />
+                <select
+                  value={areaSelecionada}
+                  onChange={(e) => setAreaSelecionada(parseInt(e.target.value))}
+                  required
+                  className="w-full mt-2 bg-gray-50 border border-gray-300 rounded-lg p-2 text-sm focus:ring focus:ring-purple-500 focus:border-purple-500"
+                >
+                  <option value="">Escolha uma área</option>
+                  {areas.map((area: any) => (
+                    <option key={area.id} value={area.id}>
+                      {area.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label value="Texto da pergunta" />
+                <TextInput
+                  id="texto"
+                  value={perguntaTexto}
+                  onChange={(e) => setPerguntaTexto(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="text-right">
+                <button
+                  type="submit"
+                  className="text-white bg-purple-600 px-5 py-2 rounded-lg hover:bg-orange-500 transition-colors"
+                >
+                  Atualizar
+                </button>
+              </div>
+            </div>
+          </form>
+        </Modal.Body>
+      </Modal>
+
     </div>
 
   );

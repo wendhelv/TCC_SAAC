@@ -14,6 +14,7 @@ import {
   createArtigo,
   deleteArtigo,
   findAllArtigos,
+  updateArtigo,
 } from "@/services/artigoService";
 import Link from "next/link";
 
@@ -59,6 +60,8 @@ export default function GerenciamentoArtigos() {
 
   function onCloseModal() {
     setOpenModal(false);
+    setModalUpdateArtigo(false);
+    setArtigoId(null)
     setEdicaoSelecionada("");
     setAreaSelecionada(0);
     setTitulo("");
@@ -69,12 +72,13 @@ export default function GerenciamentoArtigos() {
 
   function onOpenUpdateModal(artigo: any) {
     setArtigoId(artigo.id);
-    setEdicaoSelecionada("");
-    setAreaSelecionada(0);
-    setTitulo("");
-    setAutores("");
-    setResumo("");
-    setLinkPdf("");
+    setEdicaoSelecionada(artigo.idEdicao);
+    setAreaSelecionada(artigo.idArea);
+    setTitulo(artigo.titulo);
+    setAutores(artigo.autores);
+    setResumo(artigo.resumo);
+    setLinkPdf(artigo.linkPdf);
+    setModalUpdateArtigo(true);
   }
 
   useEffect(() => {
@@ -100,25 +104,44 @@ export default function GerenciamentoArtigos() {
 
   const handleSubmitArtigo = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+  
     try {
-      await createArtigo(
-        edicaoSelecionada,
-        areaSelecionada,
-        titulo,
-        autores,
-        resumo,
-        linkPdf
-      );
+      if (artigoId) {
+        
+        await updateArtigo(
+          artigoId,
+          edicaoSelecionada,
+          areaSelecionada,
+          titulo,
+          autores,
+          resumo,
+          linkPdf
+        );
+        alert("Artigo atualizado com sucesso");
+      } else {
+        
+        await createArtigo(
+          edicaoSelecionada,
+          areaSelecionada,
+          titulo,
+          autores,
+          resumo,
+          linkPdf
+        );
+        alert("Artigo criado com sucesso");
+      }
       setAtualizar(!atualizar);
       onCloseModal();
-      alert("Artigo criado com sucesso");
     } catch (error) {
-      alert("Ocorreu um erro ao criar o artigo.");
-      console.error("Erro ao criar artigo:", error);
+      alert(
+        `Ocorreu um erro ao ${
+          artigoId ? "atualizar" : "criar"
+        } o artigo. Tente novamente.`
+      );
+      console.error("Erro ao salvar artigo:", error);
     }
   };
-
+  
   const handleDeleteArtigo = async (id: number) => {
     try {
       await deleteArtigo(id);
@@ -216,7 +239,10 @@ export default function GerenciamentoArtigos() {
                           <td className="px-4 py-2">{artigo.area.nome}</td>
                           <td className="px-4 py-2">
                             <div className="flex space-x-2">
-                              <button className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg">
+                              <button
+                                onClick={() => onOpenUpdateModal(artigo)}
+                                className="text-purple-600 hover:text-orange-500 border border-gray-300 hover:border-orange-500 p-2 rounded-lg"
+                              >
                                 <PencilIcon className="h-4 w-4" />
                               </button>
                               <button
@@ -247,35 +273,32 @@ export default function GerenciamentoArtigos() {
         </div>
       </div>
 
-      <Modal show={openModal} size="7xl" onClose={onCloseModal} popup>
+      <Modal show={modalUpdateArtigo || openModal} size="7xl" onClose={onCloseModal} popup>
         <Modal.Header />
         <Modal.Body>
           <form onSubmit={handleSubmitArtigo}>
             <div className="space-y-6">
               <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-                Novo Artigo
+                {artigoId ? "Editar Artigo" : "Novo Artigo"}
               </h3>
               <div>
                 <div className="mb-2 block">
                   <Label value="Edição do artigo" />
                 </div>
                 <select
+                  value={edicaoSelecionada}
                   onChange={(e) => setEdicaoSelecionada(e.target.value)}
                   required
                   id="edicoes"
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 >
-                  <option value={"vazio"}>Escolha uma edição</option>
-                  {edicoes.length > 0 ? (
+                  <option value={""}>Escolha uma edição</option>
+                  {edicoes.length > 0 &&
                     edicoes.map((edicao: any) => (
-                      <option
-                        key={edicao.ano}
-                        value={edicao.ano}
-                      >{`${edicao.ano} - ${edicao.titulo}`}</option>
-                    ))
-                  ) : (
-                    <></>
-                  )}
+                      <option key={edicao.ano} value={edicao.ano}>
+                        {`${edicao.ano} - ${edicao.titulo}`}
+                      </option>
+                    ))}
                 </select>
               </div>
               <div>
@@ -283,21 +306,19 @@ export default function GerenciamentoArtigos() {
                   <Label value="Área do artigo" />
                 </div>
                 <select
+                  value={areaSelecionada}
                   onChange={(e) => setAreaSelecionada(parseInt(e.target.value))}
                   required
                   id="areas"
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 >
-                  <option>Escolha uma área</option>
-                  {areas.length > 0 ? (
+                  <option value={0}>Escolha uma área</option>
+                  {areas.length > 0 &&
                     areas.map((area: any) => (
                       <option key={area.id} value={area.id}>
                         {area.nome}
                       </option>
-                    ))
-                  ) : (
-                    <></>
-                  )}
+                    ))}
                 </select>
               </div>
               <div>
@@ -345,19 +366,18 @@ export default function GerenciamentoArtigos() {
                   required
                 />
               </div>
-
               <div className="w-full">
                 <button
                   type="submit"
                   className="text-white bg-purple-600 border border-gray-300 focus:outline-none hover:bg-orange-500 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-md px-5 py-2.5 me-2 mb-2 transition-colors duration-300"
                 >
-                  Criar Artigo
+                  {artigoId ? "Atualizar Artigo" : "Criar Artigo"}
                 </button>
               </div>
             </div>
           </form>
         </Modal.Body>
-      </Modal>
+      </Modal>;
     </div>
   );
 }

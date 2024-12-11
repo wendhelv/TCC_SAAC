@@ -70,6 +70,36 @@ export const createArtigo = async (
   }
 };
 
+export const updateArtigo = async (
+  id: number,
+  idEdicao: string,
+  idArea: number,
+  titulo: string,
+  autores: string,
+  resumo: string,
+  linkPdf: string
+) => {
+  try {
+    const updatedArtigo = await prisma.artigo.update({
+      where: {
+        id,
+      },
+      data: {
+        idEdicao,
+        idArea,
+        titulo,
+        autores,
+        resumo,
+        linkPdf,
+      },
+    });
+    return updatedArtigo;
+  } catch (error) {
+    console.error("Erro ao atualizar artigo:", error);
+    throw error;
+  }
+};
+
 export const deleteArtigo = async (id: number) => {
   try {
     const deletedArtigo = await prisma.artigo.delete({
